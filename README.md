@@ -42,3 +42,4 @@ A C++ model for pricing Options using the Black-Scholes and Binomial Tree method
 - [ ] Add plotting capabilities to visualize option pricing.
 - [ ] Add new pricing models such as Monte Carlo simulation.
 - [ ] Add tests for the pricing models.
+- [ ] Add a Price - Volatility heatmap.
