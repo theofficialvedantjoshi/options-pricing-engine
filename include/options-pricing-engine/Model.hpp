@@ -20,6 +20,11 @@ class BlackScholesModel : public Model {
  public:
   BlackScholesModel(const std::shared_ptr<options::Option> &option);
   double calculatePrice() const override;
+  double calculateDelta() const;
+  double calculateGamma() const;
+  double calculateTheta() const;
+  double calculateVega() const;
+  double calculateRho() const;
   void setOption(const std::shared_ptr<options::Option> &option) override {
     option_ = option;
   }
@@ -37,6 +42,9 @@ class BinomialModel : public Model {
   double getDowntick() const;
   double getProbability() const;
   double calculatePrice() const override;
+  double calculateDelta(int i, int j) const;
+  double calculateGamma(int i, int j) const;
+  double calculateTheta(int i, int j) const;
   void setOption(const std::shared_ptr<options::Option> &option) override;
 
  private:
@@ -46,6 +54,6 @@ class BinomialModel : public Model {
   double downtick_;
   double probability_;
   std::vector<double> getPayoffs() const;
-  std::vector<double> getUpdatedPayoffs() const;
+  std::vector<double> getUpdatedPayoffs(int i) const;
 };
 }  // namespace model
