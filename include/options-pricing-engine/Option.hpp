@@ -1,32 +1,32 @@
 #pragma once
 #include <options-pricing-engine/Types.hpp>
 #include <stdexcept>
-#include <string>
+#include <string_view>
 
 namespace options {
 
 class Option {
- public:
-  Option(double spotPrice, double strikePrice, double interestRate,
-         std::string maturity, double volatility, OptionType type,
-         ExerciseStyle style = ExerciseStyle::European, double carry = 0.0);
-  double getSpotPrice() const;
-  double getStrikePrice() const;
-  double getInterestRate() const;
-  double getMaturity() const;
-  double getVolatility() const;
-  double getCarry() const;
-  OptionType getType() const;
-  ExerciseStyle getStyle() const;
+  public:
+    Option(Price spotPrice, Price strikePrice, Rate interestRate,
+           std::string_view maturity, Rate volatility, OptionType type,
+           ExerciseStyle style = ExerciseStyle::European, Rate carry = 0.0);
+    Price getSpotPrice() const;
+    Price getStrikePrice() const;
+    Rate getInterestRate() const;
+    double getMaturity() const;
+    Rate getVolatility() const;
+    Rate getCarry() const;
+    OptionType getType() const;
+    ExerciseStyle getStyle() const;
 
- private:
-  double spotPrice_;
-  double strikePrice_;
-  double interestRate_;
-  double maturity_;
-  double volatility_;
-  double carry_;
-  OptionType type_;
-  ExerciseStyle style_;
+  private:
+    Price spotPrice_;
+    Price strikePrice_;
+    Rate interestRate_;
+    double maturity_;
+    Rate volatility_;
+    Rate carry_;
+    OptionType type_;
+    ExerciseStyle style_;
 };
-}  // namespace options
+} // namespace options

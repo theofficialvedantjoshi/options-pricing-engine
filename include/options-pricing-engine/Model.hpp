@@ -10,50 +10,50 @@
 
 namespace model {
 class Model {
- public:
-  virtual ~Model() = default;
-  virtual double calculatePrice() const = 0;
-  virtual void setOption(const std::shared_ptr<options::Option> &option) = 0;
+  public:
+    virtual ~Model() = default;
+    virtual Price calculatePrice() const = 0;
+    virtual void setOption(const std::shared_ptr<options::Option> &option) = 0;
 };
 
 class BlackScholesModel : public Model {
- public:
-  BlackScholesModel(const std::shared_ptr<options::Option> &option);
-  double calculatePrice() const override;
-  double calculateDelta() const;
-  double calculateGamma() const;
-  double calculateTheta() const;
-  double calculateVega() const;
-  double calculateRho() const;
-  void setOption(const std::shared_ptr<options::Option> &option) override {
-    option_ = option;
-  }
+  public:
+    BlackScholesModel(const std::shared_ptr<options::Option> &option);
+    Price calculatePrice() const override;
+    Greek calculateDelta() const;
+    Greek calculateGamma() const;
+    Greek calculateTheta() const;
+    Greek calculateVega() const;
+    Greek calculateRho() const;
+    void setOption(const std::shared_ptr<options::Option> &option) override {
+        option_ = option;
+    }
 
- private:
-  std::shared_ptr<options::Option> option_;
+  private:
+    std::shared_ptr<options::Option> option_;
 };
 
 class BinomialModel : public Model {
- public:
-  BinomialModel(const std::shared_ptr<options::Option> option,
-                const int &steps);
-  double getSteps() const;
-  double getUptick() const;
-  double getDowntick() const;
-  double getProbability() const;
-  double calculatePrice() const override;
-  double calculateDelta(int i, int j) const;
-  double calculateGamma(int i, int j) const;
-  double calculateTheta(int i, int j) const;
-  void setOption(const std::shared_ptr<options::Option> &option) override;
+  public:
+    BinomialModel(const std::shared_ptr<options::Option> option,
+                  const int &steps);
+    int getSteps() const;
+    double getUptick() const;
+    double getDowntick() const;
+    double getProbability() const;
+    Price calculatePrice() const override;
+    Greek calculateDelta(int i, int j) const;
+    Greek calculateGamma(int i, int j) const;
+    Greek calculateTheta(int i, int j) const;
+    void setOption(const std::shared_ptr<options::Option> &option) override;
 
- private:
-  std::shared_ptr<options::Option> option_;
-  int steps_;
-  double uptick_;
-  double downtick_;
-  double probability_;
-  std::vector<double> getPayoffs() const;
-  std::vector<double> getUpdatedPayoffs(int i) const;
+  private:
+    std::shared_ptr<options::Option> option_;
+    int steps_;
+    double uptick_;
+    double downtick_;
+    double probability_;
+    std::vector<Price> getPayoffs() const;
+    std::vector<Price> getUpdatedPayoffs(int i) const;
 };
-}  // namespace model
+} // namespace model
