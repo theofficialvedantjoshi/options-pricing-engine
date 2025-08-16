@@ -41,10 +41,10 @@ A C++ model and CLI for pricing Options using the Black-Scholes and Binomial Tre
 
 - [X] Add Option greeks.
 - [X] Add an interactive CLI.
+- [ ] Add support for implied volatilities.
 - [ ] Add plotting capabilities to visualize option pricing.
 - [ ] Add new pricing models such as Monte Carlo simulation.
 - [ ] Add tests for the pricing models.
-- [ ] Add a Price - Volatility heatmap.
 
 ## References
 
