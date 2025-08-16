@@ -18,6 +18,7 @@ class Option {
     Rate getCarry() const;
     OptionType getType() const;
     ExerciseStyle getStyle() const;
+    void setVolatility(Rate sigma);
 
   private:
     Price spotPrice_;

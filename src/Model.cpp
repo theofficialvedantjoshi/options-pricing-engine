@@ -28,7 +28,7 @@ Price BlackScholesModel::calculatePrice() const {
     double T = option_->getMaturity();
     Rate sigma = option_->getVolatility();
     Rate carryRate = option_->getCarry();
-    double d1 = utils::d1(S, K, r, sigma, T);
+    double d1 = utils::d1(S, K, r, sigma, T, carryRate);
     double d2 = utils::d2(d1, sigma, T);
     switch (option_->getType()) {
     case options::OptionType::Call:
@@ -49,7 +49,7 @@ Greek BlackScholesModel::calculateDelta() const {
     double T = option_->getMaturity();
     Rate sigma = option_->getVolatility();
     Rate carryRate = option_->getCarry();
-    double d1 = utils::d1(S, K, r, sigma, T);
+    double d1 = utils::d1(S, K, r, sigma, T, carryRate);
     switch (option_->getType()) {
     case options::OptionType::Call:
         return utils::normalCDF(d1) * std::exp(-carryRate * T);
@@ -67,7 +67,7 @@ Greek BlackScholesModel::calculateGamma() const {
     double T = option_->getMaturity();
     double sigma = option_->getVolatility();
     double carryRate = option_->getCarry();
-    double d1 = utils::d1(S, K, r, sigma, T);
+    double d1 = utils::d1(S, K, r, sigma, T, carryRate);
     return std::exp(-carryRate * T) * utils::normalPDF(d1) /
            (S * sigma * std::sqrt(T));
 }
@@ -79,7 +79,7 @@ Greek BlackScholesModel::calculateTheta() const {
     double T = option_->getMaturity();
     Rate sigma = option_->getVolatility();
     Rate carryRate = option_->getCarry();
-    double d1 = utils::d1(S, K, r, sigma, T);
+    double d1 = utils::d1(S, K, r, sigma, T, carryRate);
     double d2 = utils::d2(d1, sigma, T);
     switch (option_->getType()) {
     case options::OptionType::Call:
@@ -106,7 +106,7 @@ Greek BlackScholesModel::calculateVega() const {
     double T = option_->getMaturity();
     Rate sigma = option_->getVolatility();
     Rate carryRate = option_->getCarry();
-    double d1 = utils::d1(S, K, r, sigma, T);
+    double d1 = utils::d1(S, K, r, sigma, T, carryRate);
     return std::exp(-carryRate * T) * utils::normalPDF(d1) * S * std::sqrt(T);
 }
 
@@ -117,7 +117,7 @@ Greek BlackScholesModel::calculateRho() const {
     double T = option_->getMaturity();
     double sigma = option_->getVolatility();
     double carryRate = option_->getCarry();
-    double d1 = utils::d1(S, K, r, sigma, T);
+    double d1 = utils::d1(S, K, r, sigma, T, carryRate);
     double d2 = utils::d2(d1, sigma, T);
     switch (option_->getType()) {
     case options::OptionType::Call:
@@ -129,6 +129,32 @@ Greek BlackScholesModel::calculateRho() const {
     }
 }
 
+Rate BlackScholesModel::calculateIV(const Price marketPrice) const {
+    Rate sigma = option_->getVolatility();
+    Rate IV = 0.2;
+    constexpr int MAX_ITER = 1e3;
+    constexpr double tolerance = 1e-6;
+    for (int i = 0; i < MAX_ITER; ++i) {
+        option_->setVolatility(IV);
+        Price theoreticalPrice = calculatePrice();
+        double delta = theoreticalPrice - marketPrice;
+        if (std::fabs(delta) < tolerance) {
+            option_->setVolatility(sigma);
+            return IV;
+        }
+        Greek vega = calculateVega();
+        if (vega < 1e-8) {
+            break;
+        }
+        IV -= delta / vega;
+        if (IV <= 0.0) {
+            IV = tolerance;
+        }
+    }
+    option_->setVolatility(sigma);
+    throw std::runtime_error(
+        "Implied Volatility did not converge. Verify parameters.");
+}
 // Binomial Model Implementation
 BinomialModel::BinomialModel(const std::shared_ptr<options::Option> option,
                              const int &steps)

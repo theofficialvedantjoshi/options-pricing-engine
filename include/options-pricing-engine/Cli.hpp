@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <options-pricing-engine/Model.hpp>
@@ -22,51 +23,38 @@ constexpr const char *green = "\033[32m";
 constexpr const char *bold = "\033[1m";
 
 namespace cli {
+struct Command {
+    std::string description;
+    std::function<void()> func;
+    std::function<bool()> valid;
+    bool exitAfter{false};
+};
 class CLI {
   public:
     CLI() {};
     void run() {
-        int choice;
         do {
             try {
-                printMainMenu();
-                std::cout << blue << "\nEnter your choice: ";
-                std::cin >> choice;
+                clearScreen();
+                std::cout << blue << bold << header << "\n\n";
 
-                switch (choice) {
-                case 1:
-                    createOption();
-                    break;
-                case 2:
-                    if (isOptionSet()) {
-                        getOption();
-                    } else {
-                        exit();
-                        return;
-                    }
-                    break;
-                case 3:
-                    if (isBSMSet()) {
-                        priceBlackScholesModel();
-                    } else {
-                        setBlackScholesModel();
-                    }
-                    break;
-                case 4:
-                    if (isBMSet()) {
-                        priceBinomialModel();
-                    } else {
-                        setBinomialModel();
-                    }
-                    break;
-                case 5:
-                    exit();
-                    return;
-                default:
-                    clearScreen();
-                    std::cout << blue << header << "\n\n";
-                    std::cout << red << "Invalid choice. Please try again.\n";
+                auto commands = generateMenu();
+                std::cout << "Main Menu:\n";
+                for (int i = 0; i < commands.size(); ++i) {
+                    std::cout << blue << i + 1 << ". "
+                              << commands[i].description << "\n";
                 }
+                std::cout << blue << "\nEnter your choice: ";
+                int choice;
+                std::cin >> choice;
+                if (choice < 1 || choice > commands.size()) {
+                    std::cout << red << "Invalid choice. Try again.\n";
+                } else {
+                    commands[choice - 1].func();
+                    if (commands[choice - 1].exitAfter)
+                        break;
+                }
+
                 std::cout << blue << "Press Enter to return...";
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(),
                                 '\n');
@@ -90,28 +78,49 @@ class CLI {
     bool isOptionSet() const { return m_option != nullptr; }
     bool isBSMSet() const { return m_BSM != nullptr; }
     bool isBMSet() const { return m_BM != nullptr; }
-    void printMainMenu() {
-        clearScreen();
-        std::cout << blue << bold << header << "\n\n";
-        std::cout << "Main Menu:\n";
 
-        isOptionSet() ? std::cout << blue << "1. Update the Option\n"
-                      : std::cout << blue << "1. Create an Option\n";
-        if (isOptionSet()) {
-            std::cout << blue << "2. Get Option\n";
-            if ((isBSMSet() && isBMSet()) ||
-                (m_option->getStyle() == options::ExerciseStyle::American &&
-                 isBMSet())) {
-                std::cout << blue << "3. Price using Black-Scholes Model\n";
-                std::cout << blue << "4. Price using Binomial Model\n";
-            } else {
-                std::cout << blue << "3. Set Black-Scholes Model\n";
-                std::cout << blue << "4. Set Binomial Model\n";
+    std::vector<Command> generateMenu() {
+        std::vector<Command> commands;
+        commands.push_back({"Create/Update Option", [this] { createOption(); },
+                            [] { return true; }});
+
+        commands.push_back({"Get Option", [this] { getOption(); },
+                            [this] { return isOptionSet(); }});
+
+        commands.push_back({"Set Black-Scholes Model",
+                            [this] { setBlackScholesModel(); },
+                            [this] {
+                                return isOptionSet() && !isBSMSet() &&
+                                       m_option->getStyle() ==
+                                           options::ExerciseStyle::European;
+                            }});
+
+        commands.push_back({"Price with Black-Scholes Model",
+                            [this] { priceBlackScholesModel(); },
+                            [this] { return isBSMSet(); }});
+
+        commands.push_back({"Set Binomial Model",
+                            [this] { setBinomialModel(); },
+                            [this] { return isOptionSet() && !isBMSet(); }});
+
+        commands.push_back({"Price with Binomial Model",
+                            [this] { priceBinomialModel(); },
+                            [this] { return isBMSet(); }});
+
+        commands.push_back({"Calculate Implied Volatility",
+                            [this] { getImpliedVolatility(); },
+                            [this] { return isBSMSet(); }});
+
+        commands.push_back(
+            {"Exit", [this] { exit(); }, [] { return true; }, true});
+
+        std::vector<Command> validCommands;
+        for (const auto &command : commands) {
+            if (!command.valid || command.valid()) {
+                validCommands.push_back(command);
             }
-            std::cout << blue << "5. Exit\n";
-        } else {
-            std::cout << blue << "2. Exit\n";
         }
+        return validCommands;
     }
     void createOption() {
         clearScreen();
@@ -261,13 +270,13 @@ class CLI {
         std::cout << blue << "Uptick ^: " << green << uptick << "\n";
         std::cout << blue << "Downtick v: " << green << downtick << "\n";
         std::cout << blue << "Probability p: " << green << probability << "\n";
-        std::cout
-            << blue
-            << "To Calculate Greeks, specify indices (i, j) in the Binomial "
-               "Tree. i must be less than "
-            << red << m_BM->getSteps() - 1 << blue
-            << " and j must be less than i.\nIf its not possible proceed "
-               "with (-1,-1)\n";
+        std::cout << blue
+                  << "To Calculate Greeks, specify indices (i, j) in the "
+                     "Binomial "
+                     "Tree. i must be less than "
+                  << red << m_BM->getSteps() - 1 << blue
+                  << " and j must be less than i.\nIf its not possible proceed "
+                     "with (-1,-1)\n";
         std::cout << blue << "Enter i (step index): ";
         std::cin >> i;
         std::cout << blue << "Enter j (node index at step i): ";
@@ -281,6 +290,16 @@ class CLI {
                   << "\n";
         std::cout << blue << "Theta: " << green << m_BM->calculateTheta(i, j)
                   << "\n";
+    }
+    void getImpliedVolatility() const {
+        clearScreen();
+        std::cout << header << "\n\n";
+        Price marketPrice;
+        std::cout << blue << "Enter Market Price (Ex: 100.0 in $): ";
+        std::cin >> marketPrice;
+        Rate IV = m_BSM->calculateIV(marketPrice);
+        std::cout << blue << "Implied Volatility: " << green << IV * 100
+                  << " %\n";
     }
     void exit() const {
         clearScreen();

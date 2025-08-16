@@ -31,14 +31,6 @@ Option::Option(Price spotPrice, Price strikePrice, Rate interestRate,
             "Maturity must be a string in the format "
             "'Xmo' where X is a positive integer representing months.");
     }
-    // try {
-    //     months = std::stod(maturity.substr(0, maturity.length() - 2));
-    // } catch (const std::invalid_argument &) {
-    //     throw std::invalid_argument("Maturity must be a string in the
-    //     format "
-    //                                 "'Xm' where X is a positive "
-    //                                 "integer representing months.");
-    // }
     maturity_ = months / 12.0;
 }
 Price Option::getSpotPrice() const { return spotPrice_; }
@@ -49,5 +41,6 @@ Rate Option::getVolatility() const { return volatility_; }
 Rate Option::getCarry() const { return carry_; }
 OptionType Option::getType() const { return type_; }
 ExerciseStyle Option::getStyle() const { return style_; }
+void Option::setVolatility(Rate sigma) { volatility_ = sigma; }
 
 } // namespace options

@@ -25,6 +25,7 @@ class BlackScholesModel : public Model {
     Greek calculateTheta() const;
     Greek calculateVega() const;
     Greek calculateRho() const;
+    Rate calculateIV(const Price marketPrice) const;
     void setOption(const std::shared_ptr<options::Option> &option) override {
         option_ = option;
     }
