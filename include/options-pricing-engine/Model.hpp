@@ -27,11 +27,11 @@ class BlackScholesModel : public Model {
     Greek calculateRho() const;
     Rate calculateIV(const Price marketPrice) const;
     void setOption(const std::shared_ptr<options::Option> &option) override {
-        option_ = option;
+        m_option = option;
     }
 
   private:
-    std::shared_ptr<options::Option> option_;
+    std::shared_ptr<options::Option> m_option;
 };
 
 class BinomialModel : public Model {
@@ -49,12 +49,12 @@ class BinomialModel : public Model {
     void setOption(const std::shared_ptr<options::Option> &option) override;
 
   private:
-    std::shared_ptr<options::Option> option_;
-    int steps_;
-    double uptick_;
-    double downtick_;
-    double probability_;
+    std::shared_ptr<options::Option> m_option;
+    int m_steps;
+    double m_uptick;
+    double m_downtick;
+    double m_probability;
     std::vector<Price> getPayoffs() const;
-    std::vector<Price> getUpdatedPayoffs(int i) const;
+    std::vector<Price> getUpdatedPayoffs(const int i) const;
 };
 } // namespace model

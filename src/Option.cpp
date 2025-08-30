@@ -8,9 +8,9 @@ namespace options {
 Option::Option(Price spotPrice, Price strikePrice, Rate interestRate,
                std::string_view maturity, Rate volatility, OptionType type,
                ExerciseStyle style, Rate carry)
-    : spotPrice_(spotPrice), strikePrice_(strikePrice),
-      interestRate_(interestRate), volatility_(volatility), type_(type),
-      style_(style), carry_(carry) {
+    : m_spotPrice(spotPrice), m_strikePrice(strikePrice),
+      m_interestRate(interestRate), m_volatility(volatility), m_type(type),
+      m_style(style), m_carry(carry) {
     if (spotPrice <= 0 || strikePrice <= 0 || volatility <= 0) {
         throw std::invalid_argument("Spot price, strike price, and volatility "
                                     "must be positive values.");
@@ -31,16 +31,16 @@ Option::Option(Price spotPrice, Price strikePrice, Rate interestRate,
             "Maturity must be a string in the format "
             "'Xmo' where X is a positive integer representing months.");
     }
-    maturity_ = months / 12.0;
+    m_maturity = months / 12.0;
 }
-Price Option::getSpotPrice() const { return spotPrice_; }
-Price Option::getStrikePrice() const { return strikePrice_; }
-Rate Option::getInterestRate() const { return interestRate_; }
-double Option::getMaturity() const { return maturity_; }
-Rate Option::getVolatility() const { return volatility_; }
-Rate Option::getCarry() const { return carry_; }
-OptionType Option::getType() const { return type_; }
-ExerciseStyle Option::getStyle() const { return style_; }
-void Option::setVolatility(Rate sigma) { volatility_ = sigma; }
+Price Option::getSpotPrice() const { return m_spotPrice; }
+Price Option::getStrikePrice() const { return m_strikePrice; }
+Rate Option::getInterestRate() const { return m_interestRate; }
+double Option::getMaturity() const { return m_maturity; }
+Rate Option::getVolatility() const { return m_volatility; }
+Rate Option::getCarry() const { return m_carry; }
+OptionType Option::getType() const { return m_type; }
+ExerciseStyle Option::getStyle() const { return m_style; }
+void Option::setVolatility(Rate sigma) { m_volatility = sigma; }
 
 } // namespace options

@@ -21,13 +21,13 @@ class Option {
     void setVolatility(Rate sigma);
 
   private:
-    Price spotPrice_;
-    Price strikePrice_;
-    Rate interestRate_;
-    double maturity_;
-    Rate volatility_;
-    Rate carry_;
-    OptionType type_;
-    ExerciseStyle style_;
+    Price m_spotPrice;
+    Price m_strikePrice;
+    Rate m_interestRate;
+    double m_maturity;
+    Rate m_volatility;
+    Rate m_carry;
+    OptionType m_type;
+    ExerciseStyle m_style;
 };
 } // namespace options
