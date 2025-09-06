@@ -57,4 +57,20 @@ class BinomialModel : public Model {
     std::vector<Price> getPayoffs() const;
     std::vector<Price> getUpdatedPayoffs(const int i) const;
 };
+class MonteCarloModel : public Model {
+  public:
+    MonteCarloModel(const std::shared_ptr<options::Option> &option,
+                    const int &N);
+    int getN() const { return m_N; }
+    Price calculatePrice() const override;
+    void setOption(const std::shared_ptr<options::Option> &option) override {
+        m_option = option;
+    }
+
+  private:
+    std::shared_ptr<options::Option> m_option;
+    int m_N;
+    std::vector<Price> getStockPrices() const;
+    std::vector<Price> getPayoffs() const;
+};
 } // namespace model

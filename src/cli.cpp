@@ -35,7 +35,16 @@ std::vector<Command> CLI::generateMenu() {
     commands.push_back({"Price with Binomial Model",
                         [this] { priceBinomialModel(); },
                         [this] { return isBMSet(); }});
+    commands.push_back(
+        {"Set Monte Carlo Model", [this] { setMonteCarloModel(); },
+         [this] {
+             return isOptionSet() && !isMCSet() &&
+                    m_option->getStyle() == options::ExerciseStyle::European;
+         }});
 
+    commands.push_back({"Price with Monte Carlo Model",
+                        [this] { priceMonteCarloModel(); },
+                        [this] { return isMCSet(); }});
     commands.push_back({"Calculate Implied Volatility",
                         [this] { getImpliedVolatility(); },
                         [this] { return isBSMSet(); }});
@@ -121,6 +130,30 @@ void CLI::setBinomialModel() {
     m_BM = std::make_shared<model::BinomialModel>(m_option, steps);
     std::cout << blue << "Binomial Model set successfully.\n";
 }
+void CLI::setMonteCarloModel() {
+    clearScreen();
+    std::cout << header << "\n\n";
+    if (!isOptionSet()) {
+        std::cout << red << "No option set. Please create an option first.\n";
+        return;
+    }
+    if (m_option->getStyle() == options::ExerciseStyle::American) {
+        std::cout << red
+                  << "Monte Carlo Model does not support American options\n";
+        return;
+    }
+    if (isMCSet()) {
+        m_MC->setOption(m_option);
+        std::cout << blue << "Monte Carlo Model updated successfully.\n";
+        return;
+    }
+    int N;
+    std::cout << blue
+              << "Enter number of iterations for the Monte Carlo Model: ";
+    std::cin >> N;
+    m_MC = std::make_shared<model::MonteCarloModel>(m_option, N);
+    std::cout << blue << "Monte Carlo Model set successfully.\n";
+}
 void CLI::priceBlackScholesModel() const {
     clearScreen();
     std::cout << header << "\n\n";
@@ -183,6 +216,24 @@ void CLI::priceBinomialModel() const {
               << "\n";
     std::cout << blue << "Theta: " << green << m_BM->calculateTheta(i, j)
               << "\n";
+}
+void CLI::priceMonteCarloModel() const {
+    clearScreen();
+    std::cout << header << "\n\n";
+    if (!isMCSet()) {
+        std::cout << red << "Monte Carlo Model not set. Please set it first.\n";
+        return;
+    }
+    if (m_option->getStyle() == options::ExerciseStyle::American) {
+        std::cout << red
+                  << "Monte Carlo Model does not support American "
+                     "options.\n";
+        return;
+    }
+    Price price = m_MC->calculatePrice();
+    const int N = m_MC->getN();
+    std::cout << blue << "Monte Carlo Iterations: " << green << N << "\n";
+    std::cout << blue << "Monte Carlo Price: " << green << price << " $\n";
 }
 void CLI::getImpliedVolatility() const {
     clearScreen();

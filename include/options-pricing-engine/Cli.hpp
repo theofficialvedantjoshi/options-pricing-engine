@@ -73,10 +73,12 @@ class CLI {
     std::shared_ptr<options::Option> m_option;
     std::shared_ptr<model::BlackScholesModel> m_BSM;
     std::shared_ptr<model::BinomialModel> m_BM;
+    std::shared_ptr<model::MonteCarloModel> m_MC;
     void clearScreen() const { std::cout << "\033[2J\033[1;1H"; }
     bool isOptionSet() const { return m_option != nullptr; }
     bool isBSMSet() const { return m_BSM != nullptr; }
     bool isBMSet() const { return m_BM != nullptr; }
+    bool isMCSet() const { return m_MC != nullptr; }
 
     std::vector<Command> generateMenu();
     void createOption();
@@ -114,6 +116,8 @@ class CLI {
     void setBinomialModel();
     void priceBlackScholesModel() const;
     void priceBinomialModel() const;
+    void setMonteCarloModel();
+    void priceMonteCarloModel() const;
     void getImpliedVolatility() const;
     void exit() const {
         clearScreen();

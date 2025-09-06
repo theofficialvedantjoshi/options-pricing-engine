@@ -1,12 +1,15 @@
 # C++ Options Pricing Engine
 
-A C++ model and CLI for pricing Options using the Black-Scholes and Binomial Tree methods. This project provides a simple implementation of options pricing models, allowing users to create and price different types of options.
+A C++ model and CLI for pricing Options using the Black-Scholes, Binomial Tree methods and Monte Carlo Simulations. This project provides a simple implementation of option pricing models, allowing users to create and price different types of options.
 
 ## Features
 
-- An Option class used to model different types of options with parameters including type, exercise style and carry rate(dividend yield).
+- An Option class used to model different types of options with parameters including type, exercise style and carry rate(dividend yield) etc.
 - A Black-Scholes model for pricing European options.
 - A Binomial Tree model for pricing both European and American options.
+- A Monte Carlo simulation model for pricing European options.
+- Calculation of option Greeks (Delta, Gamma, Theta, Vega, Rho) for each pricing model.
+- Calculation of implied volatility based on the Black-Scholes model.
 - An interactive command-line interface (CLI) for creating and pricing options.
 
 ## Setup
@@ -43,7 +46,8 @@ A C++ model and CLI for pricing Options using the Black-Scholes and Binomial Tre
 - [X] Add an interactive CLI.
 - [X] Add support for implied volatilities.
 - [ ] Add plotting capabilities to visualize option pricing.
-- [ ] Add new pricing models such as Monte Carlo simulation.
+- [X] Add new pricing models such as Monte Carlo simulation.
+- [ ] Calculate Greeks for Monte Carlo simulation.
 - [ ] Add tests for the pricing models.
 
 ## References

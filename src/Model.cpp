@@ -284,4 +284,60 @@ void BinomialModel::setOption(const std::shared_ptr<options::Option> &option) {
          m_downtick) /
         (m_uptick - m_downtick);
 }
+
+MonteCarloModel::MonteCarloModel(const std::shared_ptr<options::Option> &option,
+                                 const int &N)
+    : m_option(option), m_N(N) {
+    if (N < 0) {
+        throw std::invalid_argument(
+            "N.o of iterations must be a positive integer.");
+    }
+    if (!m_option) {
+        throw std::invalid_argument("Option cannot be null.");
+    }
+    if (option->getStyle() == options::ExerciseStyle::American) {
+        throw std::invalid_argument("Option exercise style must be European");
+    }
+}
+std::vector<Price> MonteCarloModel::getStockPrices() const {
+    std::vector<Price> stockPrices(m_N);
+    auto Z = utils::generateSamples(m_N);
+    Price S0 = m_option->getSpotPrice();
+    Rate sigma = m_option->getVolatility();
+    Rate carry = m_option->getCarry();
+    Rate r = m_option->getInterestRate();
+    double T = m_option->getMaturity();
+    for (int i = 0; i < m_N; ++i) {
+        stockPrices[i] = S0 * std::exp((r - carry - 0.5 * sigma * sigma) * T +
+                                       sigma * std::sqrt(T) * Z[i]);
+    }
+    return stockPrices;
+}
+std::vector<Price> MonteCarloModel::getPayoffs() const {
+    std::vector<Price> payoffs(m_N);
+    auto stockPrices = getStockPrices();
+    Price K = m_option->getStrikePrice();
+    switch (m_option->getType()) {
+    case (options::OptionType::Call):
+        for (int i = 0; i < m_N; ++i) {
+            payoffs[i] = std::max(stockPrices[i] - K, 0.0);
+        }
+        break;
+    case (options::OptionType::Put):
+        for (int i = 0; i < m_N; ++i) {
+            payoffs[i] = std::max(K - stockPrices[i], 0.0);
+        }
+        break;
+    default:
+        throw std::invalid_argument("Unknown option type.");
+    }
+    return payoffs;
+}
+Price MonteCarloModel::calculatePrice() const {
+    auto payoffs = getPayoffs();
+    Rate r = m_option->getInterestRate();
+    double T = m_option->getMaturity();
+    return std::exp(-r * T) *
+           (std::accumulate(payoffs.begin(), payoffs.end(), 0.0) / m_N);
+}
 } // namespace model
