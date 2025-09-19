@@ -1,0 +1,11 @@
+# Option Configuration
+
+[option]
+spot = 100.0      # Spot Price in USD
+strike = 105.0    # Strike Price in USD
+interest = 0.05   # Risk free interest rate (Ex: 0.05 for 5%)
+volatility = 0.2  # Volatility of the underlying asset (Ex: 0.2 for 20%)
+maturity = "12mo" # Maturity of the contract (In months, Ex: 24mo)
+yield = 0.0       # Yield of the underlying asset, this includes dividend yield, convinience yield, forex yield, etc. (Ex: 0.0 for 0%)
+type = 0      # Option type (0 for Call, 1 for Put)
+style = 0 # Exercise style (0 for European, 1 for American)

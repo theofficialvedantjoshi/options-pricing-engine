@@ -63,6 +63,11 @@ class MonteCarloModel : public Model {
                     const int &N);
     int getN() const { return m_N; }
     Price calculatePrice() const override;
+    Greek calculateDelta() const;
+    Greek calculateGamma() const;
+    Greek calculateTheta() const;
+    Greek calculateVega() const;
+    Greek calculateRho() const;
     void setOption(const std::shared_ptr<options::Option> &option) override {
         m_option = option;
     }

@@ -7,6 +7,7 @@
 #include <options-pricing-engine/Types.hpp>
 #include <options-pricing-engine/Utils.hpp>
 #include <stdexcept>
+#include <toml++/toml.hpp>
 
 namespace cli {
 
@@ -14,7 +15,8 @@ std::vector<Command> CLI::generateMenu() {
     std::vector<Command> commands;
     commands.push_back({"Create/Update Option", [this] { createOption(); },
                         [] { return true; }});
-
+    commands.push_back({"Load Option (option.toml)", [this] { loadOption(); },
+                        [] { return true; }});
     commands.push_back({"Get Option", [this] { getOption(); },
                         [this] { return isOptionSet(); }});
 
@@ -63,7 +65,7 @@ void CLI::createOption() {
     clearScreen();
     std::cout << header << "\n\n";
     Price spotPrice, strikePrice;
-    Rate interestRate, volatility, carryRate;
+    Rate interestRate, volatility, yield;
     std::string maturity;
     int style;
     int type;
@@ -79,9 +81,9 @@ void CLI::createOption() {
     std::cout << blue << "Enter Volatility 'sigma' (Ex: 0.2 for 20%): ";
     std::cin >> volatility;
     std::cout << blue
-              << "Enter Carry Rate (Includes dividend yield, convinience "
-                 "yield, forex carry, etc., Ex: 0.0 for 0%): ";
-    std::cin >> carryRate;
+              << "Enter Yield Rate (Includes dividend yield, convinience "
+                 "yield, forex yield, etc., Ex: 0.0 for 0%): ";
+    std::cin >> yield;
 
     std::cout << blue << "Enter Option Type (0 for Call, 1 for Put): ";
     std::cin >> type;
@@ -94,7 +96,26 @@ void CLI::createOption() {
         spotPrice, strikePrice, interestRate,
         static_cast<std::string_view>(maturity), volatility,
         static_cast<options::OptionType>(type),
-        static_cast<options::ExerciseStyle>(style), carryRate);
+        static_cast<options::ExerciseStyle>(style), yield);
+}
+void CLI::loadOption() {
+    clearScreen();
+    std::cout << header << "\n\n";
+    auto config = toml::parse_file("option.toml");
+    Price spotPrice = config["option"]["spot"].value_or(-1.0);
+    Price strikePrice = config["option"]["strike"].value_or(-1.0);
+    Rate interestRate = config["option"]["interest"].value_or(-1.0);
+    Rate volatility = config["option"]["volatility"].value_or(-1.0);
+    std::string_view maturity =
+        config["option"]["maturity"].value_or(std::string_view(""));
+    Rate yield = config["option"]["yield"].value_or(0.0);
+    uint8_t type = config["option"]["type"].value_or(0);
+    uint8_t style = config["option"]["style"].value_or(0);
+    m_option = std::make_shared<options::Option>(
+        spotPrice, strikePrice, interestRate, maturity, volatility,
+        static_cast<options::OptionType>(type),
+        static_cast<options::ExerciseStyle>(style), yield);
+    std::cout << blue << "Option loaded sucessfully.\n";
 }
 void CLI::setBlackScholesModel() {
     clearScreen();
@@ -176,8 +197,8 @@ void CLI::priceBlackScholesModel() const {
     std::cout << blue << "Option Delta: " << green << delta << "\n";
     std::cout << blue << "Option Gamma: " << green << gamma << "\n";
     std::cout << blue << "Option Theta: " << green << theta << "\n";
-    std::cout << blue << "Option Vega: " << green << vega << "\n";
-    std::cout << blue << "Option Rho: " << green << rho << "\n";
+    std::cout << blue << "Option Vega: " << green << vega << "%\n";
+    std::cout << blue << "Option Rho: " << green << rho << "%\n";
     std::cout << red << "Note: All Greeks are calculated at the current option "
               << "parameters.\n";
 }
@@ -231,9 +252,19 @@ void CLI::priceMonteCarloModel() const {
         return;
     }
     Price price = m_MC->calculatePrice();
+    Greek delta = m_MC->calculateDelta(), gamma = m_MC->calculateGamma(),
+          theta = m_MC->calculateTheta(), vega = m_MC->calculateVega(),
+          rho = m_MC->calculateRho();
     const int N = m_MC->getN();
     std::cout << blue << "Monte Carlo Iterations: " << green << N << "\n";
     std::cout << blue << "Monte Carlo Price: " << green << price << " $\n";
+    std::cout << blue << "Option Delta: " << green << delta << "\n";
+    std::cout << blue << "Option Gamma: " << green << gamma << "\n";
+    std::cout << blue << "Option Theta: " << green << theta << "\n";
+    std::cout << blue << "Option Vega: " << green << vega << "%\n";
+    std::cout << blue << "Option Rho: " << green << rho << "%\n";
+    std::cout << red << "Note: All Greeks are calculated at the current option "
+              << "parameters.\n";
 }
 void CLI::getImpliedVolatility() const {
     clearScreen();

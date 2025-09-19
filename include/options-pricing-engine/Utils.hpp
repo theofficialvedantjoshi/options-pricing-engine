@@ -4,6 +4,9 @@
 #include <vector>
 
 namespace utils {
+
+static double stepSize = 1;
+
 inline double normalCDF(double x) {
     return 0.5 * std::erfc(-x / std::sqrt(2.0));
 }
@@ -21,8 +24,8 @@ inline std::vector<double> generateSamples(const int N) {
     return samples;
 }
 inline double d1(double S, double K, double r, double sigma, double T,
-                 double carryRate = 0.0) {
-    return (std::log(S / K) + ((r - carryRate) + 0.5 * sigma * sigma) * T) /
+                 double yield = 0.0) {
+    return (std::log(S / K) + ((r - yield) + 0.5 * sigma * sigma) * T) /
            (sigma * std::sqrt(T));
 }
 inline double d2(double d1, double sigma, double T) {

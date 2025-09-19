@@ -27,16 +27,16 @@ Price BlackScholesModel::calculatePrice() const {
     Rate r = m_option->getInterestRate();
     double T = m_option->getMaturity();
     Rate sigma = m_option->getVolatility();
-    Rate carryRate = m_option->getCarry();
-    double d1 = utils::d1(S, K, r, sigma, T, carryRate);
+    Rate yield = m_option->getYield();
+    double d1 = utils::d1(S, K, r, sigma, T, yield);
     double d2 = utils::d2(d1, sigma, T);
     switch (m_option->getType()) {
     case options::OptionType::Call:
-        return S * utils::normalCDF(d1) * std::exp(-carryRate * T) -
+        return S * utils::normalCDF(d1) * std::exp(-yield * T) -
                K * std::exp(-r * T) * utils::normalCDF(d2);
     case options::OptionType::Put:
         return K * std::exp(-r * T) * utils::normalCDF(-d2) -
-               S * utils::normalCDF(-d1) * std::exp(-carryRate * T);
+               S * utils::normalCDF(-d1) * std::exp(-yield * T);
     default:
         throw std::invalid_argument("Unknown option type.");
     }
@@ -48,13 +48,13 @@ Greek BlackScholesModel::calculateDelta() const {
     Rate r = m_option->getInterestRate();
     double T = m_option->getMaturity();
     Rate sigma = m_option->getVolatility();
-    Rate carryRate = m_option->getCarry();
-    double d1 = utils::d1(S, K, r, sigma, T, carryRate);
+    Rate yield = m_option->getYield();
+    double d1 = utils::d1(S, K, r, sigma, T, yield);
     switch (m_option->getType()) {
     case options::OptionType::Call:
-        return utils::normalCDF(d1) * std::exp(-carryRate * T);
+        return utils::normalCDF(d1) * std::exp(-yield * T);
     case options::OptionType::Put:
-        return (utils::normalCDF(d1) - 1) * std::exp(-carryRate * T);
+        return (utils::normalCDF(d1) - 1) * std::exp(-yield * T);
     default:
         throw std::invalid_argument("Unknown option type.");
     }
@@ -66,9 +66,9 @@ Greek BlackScholesModel::calculateGamma() const {
     double r = m_option->getInterestRate();
     double T = m_option->getMaturity();
     double sigma = m_option->getVolatility();
-    double carryRate = m_option->getCarry();
-    double d1 = utils::d1(S, K, r, sigma, T, carryRate);
-    return std::exp(-carryRate * T) * utils::normalPDF(d1) /
+    double yield = m_option->getYield();
+    double d1 = utils::d1(S, K, r, sigma, T, yield);
+    return std::exp(-yield * T) * utils::normalPDF(d1) /
            (S * sigma * std::sqrt(T));
 }
 
@@ -78,22 +78,20 @@ Greek BlackScholesModel::calculateTheta() const {
     Rate r = m_option->getInterestRate();
     double T = m_option->getMaturity();
     Rate sigma = m_option->getVolatility();
-    Rate carryRate = m_option->getCarry();
-    double d1 = utils::d1(S, K, r, sigma, T, carryRate);
+    Rate yield = m_option->getYield();
+    double d1 = utils::d1(S, K, r, sigma, T, yield);
     double d2 = utils::d2(d1, sigma, T);
     switch (m_option->getType()) {
     case options::OptionType::Call:
-        return (-S * std::exp(-carryRate * T) * utils::normalPDF(d1) * sigma /
+        return (-S * std::exp(-yield * T) * utils::normalPDF(d1) * sigma /
                 (2 * std::sqrt(T))) +
-               (carryRate * S * std::exp(-carryRate * T) *
-                utils::normalCDF(d1)) -
-               (r * K * std::exp(-carryRate * T) * utils::normalCDF(d2));
+               (yield * S * std::exp(-yield * T) * utils::normalCDF(d1)) -
+               (r * K * std::exp(-r * T) * utils::normalCDF(d2));
     case options::OptionType::Put:
-        return (-S * std::exp(-carryRate * T) * utils::normalPDF(d1) * sigma /
+        return (-S * std::exp(-yield * T) * utils::normalPDF(d1) * sigma /
                 (2 * std::sqrt(T))) +
-               (carryRate * S * std::exp(-carryRate * T) *
-                utils::normalCDF(d1)) +
-               (r * K * std::exp(-carryRate * T) * utils::normalCDF(d2));
+               (yield * S * std::exp(-yield * T) * utils::normalCDF(-d1)) +
+               (r * K * std::exp(-r * T) * utils::normalCDF(-d2));
     default:
         throw std::invalid_argument("Unknown option type.");
     }
@@ -105,9 +103,9 @@ Greek BlackScholesModel::calculateVega() const {
     Rate r = m_option->getInterestRate();
     double T = m_option->getMaturity();
     Rate sigma = m_option->getVolatility();
-    Rate carryRate = m_option->getCarry();
-    double d1 = utils::d1(S, K, r, sigma, T, carryRate);
-    return std::exp(-carryRate * T) * utils::normalPDF(d1) * S * std::sqrt(T);
+    Rate yield = m_option->getYield();
+    double d1 = utils::d1(S, K, r, sigma, T, yield);
+    return std::exp(-yield * T) * utils::normalPDF(d1) * S * std::sqrt(T);
 }
 
 Greek BlackScholesModel::calculateRho() const {
@@ -116,14 +114,14 @@ Greek BlackScholesModel::calculateRho() const {
     double r = m_option->getInterestRate();
     double T = m_option->getMaturity();
     double sigma = m_option->getVolatility();
-    double carryRate = m_option->getCarry();
-    double d1 = utils::d1(S, K, r, sigma, T, carryRate);
+    double yield = m_option->getYield();
+    double d1 = utils::d1(S, K, r, sigma, T, yield);
     double d2 = utils::d2(d1, sigma, T);
     switch (m_option->getType()) {
     case options::OptionType::Call:
-        return T * K * std::exp(-carryRate * T) * utils::normalCDF(d2);
+        return T * K * std::exp(-r * T) * utils::normalCDF(d2);
     case options::OptionType::Put:
-        return -T * K * std::exp(-carryRate * T) * utils::normalCDF(-d2);
+        return -T * K * std::exp(-r * T) * utils::normalCDF(-d2);
     default:
         throw std::invalid_argument("Unknown option type.");
     }
@@ -169,7 +167,7 @@ BinomialModel::BinomialModel(const std::shared_ptr<options::Option> option,
     m_uptick =
         exp(option->getVolatility() * sqrt(option->getMaturity() / steps));
     m_downtick = 1 / m_uptick;
-    m_probability = (exp((option->getInterestRate() - option->getCarry()) *
+    m_probability = (exp((option->getInterestRate() - option->getYield()) *
                          (option->getMaturity() / steps)) -
                      m_downtick) /
                     (m_uptick - m_downtick);
@@ -252,11 +250,11 @@ Greek BinomialModel::calculateGamma(int i, int j) const {
     }
     Greek deltaU = calculateDelta(i + 1, j + 1);
     Greek deltaD = calculateDelta(i + 1, j);
-    Price sU = m_option->getSpotPrice() * pow(m_uptick, j + 1) *
-               pow(m_downtick, i - j - 1);
-    Price sD =
-        m_option->getSpotPrice() * pow(m_uptick, j) * pow(m_downtick, i - j);
-    return (deltaU - deltaD) / (sU - sD);
+    Price sUU = m_option->getSpotPrice() * pow(m_uptick, j + 2) *
+                pow(m_downtick, i - j);
+    Price sDD = m_option->getSpotPrice() * pow(m_uptick, j) *
+                pow(m_downtick, i - j + 2);
+    return (deltaU - deltaD) / (0.5 * (sUU - sDD));
 }
 
 Greek BinomialModel::calculateTheta(int i, int j) const {
@@ -266,7 +264,7 @@ Greek BinomialModel::calculateTheta(int i, int j) const {
     auto payoffs1 = getUpdatedPayoffs(i);
     auto payoffs2 = getUpdatedPayoffs(i + 2);
     Price cU = payoffs1[j];
-    Price cD = payoffs1[j + 1];
+    Price cD = payoffs2[j + 1];
     return (cU - cD) / (365 * m_option->getMaturity() / m_steps);
 }
 
@@ -280,7 +278,7 @@ void BinomialModel::setOption(const std::shared_ptr<options::Option> &option) {
     m_downtick = 1 / m_uptick;
     m_probability =
         (exp(option->getInterestRate() -
-             option->getCarry() * (sqrt(option->getMaturity() / m_steps))) -
+             option->getYield() * (option->getMaturity() / m_steps)) -
          m_downtick) /
         (m_uptick - m_downtick);
 }
@@ -304,11 +302,11 @@ std::vector<Price> MonteCarloModel::getStockPrices() const {
     auto Z = utils::generateSamples(m_N);
     Price S0 = m_option->getSpotPrice();
     Rate sigma = m_option->getVolatility();
-    Rate carry = m_option->getCarry();
+    Rate yield = m_option->getYield();
     Rate r = m_option->getInterestRate();
     double T = m_option->getMaturity();
     for (int i = 0; i < m_N; ++i) {
-        stockPrices[i] = S0 * std::exp((r - carry - 0.5 * sigma * sigma) * T +
+        stockPrices[i] = S0 * std::exp((r - yield - 0.5 * sigma * sigma) * T +
                                        sigma * std::sqrt(T) * Z[i]);
     }
     return stockPrices;
@@ -339,5 +337,51 @@ Price MonteCarloModel::calculatePrice() const {
     double T = m_option->getMaturity();
     return std::exp(-r * T) *
            (std::accumulate(payoffs.begin(), payoffs.end(), 0.0) / m_N);
+}
+Greek MonteCarloModel::calculateDelta() const {
+    Price spotPrice = m_option->getSpotPrice();
+    m_option->setSpotPrice(spotPrice + utils::stepSize);
+    Price priceUp = calculatePrice();
+    m_option->setSpotPrice(spotPrice - utils::stepSize);
+    Price priceDown = calculatePrice();
+    m_option->setSpotPrice(spotPrice);
+    return (priceUp - priceDown) / (2.0 * utils::stepSize);
+}
+Greek MonteCarloModel::calculateGamma() const {
+    Price spotPrice = m_option->getSpotPrice();
+    Price price = calculatePrice();
+    m_option->setSpotPrice(spotPrice + utils::stepSize);
+    Price priceUp = calculatePrice();
+    m_option->setSpotPrice(spotPrice - utils::stepSize);
+    Price priceDown = calculatePrice();
+    m_option->setSpotPrice(spotPrice);
+    return (priceUp - 2 * price + priceDown) /
+           (utils::stepSize * utils::stepSize);
+}
+Greek MonteCarloModel::calculateTheta() const {
+    double maturity = m_option->getMaturity();
+    Price price = calculatePrice();
+    m_option->setMaturity(maturity - utils::stepSize);
+    Price priceDown = calculatePrice();
+    m_option->setMaturity(maturity);
+    return (priceDown - price) / utils::stepSize;
+}
+Greek MonteCarloModel::calculateVega() const {
+    Rate sigma = m_option->getVolatility();
+    m_option->setVolatility(sigma + utils::stepSize);
+    Price priceUp = calculatePrice();
+    m_option->setVolatility(sigma - utils::stepSize);
+    Price priceDown = calculatePrice();
+    m_option->setVolatility(sigma);
+    return (priceUp - priceDown) / (2.0 * utils::stepSize);
+}
+Greek MonteCarloModel::calculateRho() const {
+    Rate interestRate = m_option->getInterestRate();
+    m_option->setInterestRate(interestRate + utils::stepSize);
+    Price priceUp = calculatePrice();
+    m_option->setInterestRate(interestRate - utils::stepSize);
+    Price priceDown = calculatePrice();
+    m_option->setInterestRate(interestRate);
+    return (priceUp - priceDown) / (2.0 * utils::stepSize);
 }
 } // namespace model

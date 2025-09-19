@@ -82,6 +82,7 @@ class CLI {
 
     std::vector<Command> generateMenu();
     void createOption();
+    void loadOption();
     void getOption() const {
         clearScreen();
         std::cout << header << "\n\n";
@@ -100,8 +101,8 @@ class CLI {
                   << m_option->getMaturity() * 12 << " months\n";
         std::cout << blue << "Volatility: " << green
                   << m_option->getVolatility() * 100 << " %\n";
-        std::cout << blue << "Carry Rate: " << green
-                  << m_option->getCarry() * 100 << " %\n";
+        std::cout << blue << "Yield Rate: " << green
+                  << m_option->getYield() * 100 << " %\n";
         std::cout << blue << "Type: " << green
                   << (m_option->getType() == options::OptionType::Call ? "Call"
                                                                        : "Put")
