@@ -83,7 +83,8 @@ style = 0 # Exercise style (0 for European, 1 for American)
 - [X] Calculate Greeks for Monte Carlo simulation.
 - [X] Load option parameters from a configuration file (TOML).
 - [ ] Add plotting capabilities to visualize option pricing.
-- [ ] Add plotting capabilities to visualize option pricing.
+- [ ] Add Support for exotic options like Asian, Barrier, Lookback, etc.
+- [ ] Add unit tests for all models and functionalities.
 
 ## References
 
